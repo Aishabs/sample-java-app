@@ -2,31 +2,35 @@ pipeline {
     agent any
 
     stages {
-        stage('Restore') {
+        stage('Validate') {
             steps {
-                sh "dotnet restore"
+                sh "mvn validate"
 
+                sh "mvn clean"
             }
         }
          stage('Build') {
             steps {
-                sh "dotnet build"
+                sh "mvn compile"
             }
         }
          stage('Test') {
             steps {
-                sh "dotnet test"
+                sh "mvn test"
+            }
+            post{
+                always{
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                }
             }
         }
-         stage('Publish') {
+         stage('Package') {
             steps {
-                sh "dotnet publish"
+                sh "mvn package"
             }
             post{
                 success{
-                    archiveArtifacts artifacts: '**/bin/Debug/net6.0/**.dll', followSymlinks: false
-
-                    
+                    archiveArtifacts artifacts: '**/target/**.war', followSymlinks: false
                 }
             }
         }
